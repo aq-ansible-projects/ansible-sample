@@ -1,0 +1,67 @@
+---
+- name: Change PDC hostname
+  win_hostname:
+    name: '{{ pdc_name }}'
+  register: pdc_name_change
+
+- name: Reboot PDC if required
+  win_reboot:
+    post_reboot_delay: 60
+    reboot_timeout: 600
+  when: pdc_name_change.reboot_required
+
+# Get all available features using powershell command Get-WindowsFeature
+# https://sid-500.com/2017/07/18/windows-server-list-all-installed-roles-and-features-using-powershell/
+- name: Install Features and Services
+  include_tasks: 'install-feature.yml'
+  with_items: '{{ pdc_required_features }}'
+  loop_control:
+    loop_var: feature
+
+- name: Create new domain for Windows Server 2016
+  win_domain:
+    dns_domain_name: '{{ domain_name }}'
+    domain_netbios_name: '{{ domain_netbios_name }}'
+    forest_mode: '{{ domain_forest_mode }}'
+    safe_mode_password: '{{ domain_safe_mode_password }}'
+  register: pdc_create_domain
+
+- name: Reboot and wait until machine comes online
+  block:
+    - name: Reboot if required
+      win_reboot:
+        post_reboot_delay: 60
+        reboot_timeout: 600
+
+    - name: Wait for process to be available
+      win_wait_for_process:
+        process_name_exact: '{{ item }}'
+        state: present
+      with_items:
+        - Microsoft.ActiveDirectory.WebServices
+        - dns
+        - lsass
+        - msdtc        
+  when: pdc_create_domain.reboot_required
+
+- name: Create separate domain admin account
+  win_domain_user:
+    name: '{{ domain_admin_user }}'
+    password: '{{ domain_admin_password }}'
+    state: present
+    update_password: on_create
+    groups:
+      - Domain Admins
+
+- name: Get current IP address of the PDC
+  win_shell: |
+    $net_adapter_name = (Get-NetAdapter -Physical | Where-Object { $_.Name -like "Ethernet*" } | Where-Object { ($_.InterfaceDescription -like "*Hyper-V*") -or ($_.InterfaceDescription -like "*Amazon*") } | select Name)[0].Name
+    (Get-NetIpAddress -AddressFamily 'IPv4' -InterfaceAlias $net_adapter_name).IPAddress
+  register: pdc_ip
+  changed_when: false
+  ignore_errors: yes
+
+- name: Set fact
+  set_fact:
+    pdc_ip: '{{ pdc_ip.stdout_lines[0] }}'
+    cacheable: yes

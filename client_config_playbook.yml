@@ -1,0 +1,10 @@
+---
+- name: Create Active Directory on Domain Controllers
+  hosts: tag_applicationRole_client
+  # vars:
+  #   ansible_connection: winrm
+  #   ansible_winrm_server_cert_validation: ignore
+  vars_files:
+    - vars/global.yml
+  roles:
+    - domain-join

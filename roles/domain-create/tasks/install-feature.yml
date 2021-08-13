@@ -1,0 +1,13 @@
+- name: Install Feature and Service
+  win_feature:
+    name: '{{ feature }}'
+    include_sub_features: yes
+    include_management_tools: yes
+    state: present
+  register: pdc_install_feature
+
+- name: Reboot PDC if required
+  win_reboot:
+    post_reboot_delay: 60
+    reboot_timeout: 600
+  when: pdc_install_feature.reboot_required

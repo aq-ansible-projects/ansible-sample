@@ -1,0 +1,15 @@
+---
+ansible_user: 'remote_admin'
+# Password related variables
+general_password: 'P@ssw0rd'
+# Domain related variables
+domain_1: 'anhquach'
+domain_2: 'com'
+parent_domain_name: '{{ domain_1 }}.{{ domain_2 }}'
+domain_name: 'ad.{{ parent_domain_name }}'
+domain_netbios_name: '{{ domain_1 | upper }}'
+domain_admin_user: 'matdecha'
+domain_admin_password: '{{ general_password }}'
+domain_safe_mode_password: '{{ general_password }}'
+# Azure related variables
+subscription_name: 'AZ-HOAN-2'

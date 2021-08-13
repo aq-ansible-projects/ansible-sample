@@ -1,0 +1,16 @@
+# Azure CLI Related Repositories
+- src: https://gitlab.com/Halliburton-Landmark/ienergy-cloud/ansible/roles/azure-recovery-services
+  scm: git
+  version: v0.1.1
+  name: azure-recovery-services
+
+# Active Directory Related Repositories
+- src: https://gitlab.com/Halliburton-Landmark/ienergy-cloud/ansible/roles/domain-create
+  scm: git
+  version: v0.5.4
+  name: domain-create
+
+- src: https://gitlab.com/Halliburton-Landmark/ienergy-cloud/ansible/roles/create-ad-group
+  scm: git
+  version: v0.1.1
+  name: create-ad-group

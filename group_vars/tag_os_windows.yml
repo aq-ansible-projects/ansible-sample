@@ -1,0 +1,4 @@
+---
+ansible_connection: 'winrm'
+ansible_password: 'YFh7xjG^Am9u(@qZ'
+ansible_winrm_server_cert_validation: ignore

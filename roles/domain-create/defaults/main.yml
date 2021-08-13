@@ -1,0 +1,16 @@
+---
+pdc_name: 'dc-1'
+sdc_name: 'dc-2'
+domain_forest_mode: "Win2012R2"
+pdc_required_features:
+  - AD-Domain-Services
+  - DNS
+  - RSAT-ADDS
+  - RSAT-AD-PowerShell
+
+required_vars:
+  - domain_name
+  - domain_netbios_name
+  - domain_admin_user
+  - domain_admin_password
+  - domain_safe_mode_password

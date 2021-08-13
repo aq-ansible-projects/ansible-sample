@@ -1,0 +1,4 @@
+---
+# Active Directory related values
+pdc_name: 'dc-1'
+sdc_name: 'dc-2'

@@ -26,23 +26,21 @@
     safe_mode_password: '{{ domain_safe_mode_password }}'
   register: pdc_create_domain
 
-- name: Reboot and wait until machine comes online
-  block:
-    - name: Reboot if required
-      win_reboot:
-        post_reboot_delay: 60
-        reboot_timeout: 600
-
-    - name: Wait for process to be available
-      win_wait_for_process:
-        process_name_exact: '{{ item }}'
-        state: present
-      with_items:
-        - Microsoft.ActiveDirectory.WebServices
-        - dns
-        - lsass
-        - msdtc        
+- name: Reboot if required
+  win_reboot:
+    post_reboot_delay: 60
+    reboot_timeout: 600
   when: pdc_create_domain.reboot_required
+
+- name: Wait for process to be available
+  win_wait_for_process:
+    process_name_exact: '{{ item }}'
+    state: present
+  with_items:
+    - Microsoft.ActiveDirectory.WebServices
+    - dns
+    - lsass
+    - msdtc          
 
 - name: Create separate domain admin account
   win_domain_user:
@@ -51,7 +49,7 @@
     state: present
     update_password: on_create
     groups:
-      - Domain Admins
+      - 'Domain Admins'
 
 - name: Get current IP address of the PDC
   win_shell: |

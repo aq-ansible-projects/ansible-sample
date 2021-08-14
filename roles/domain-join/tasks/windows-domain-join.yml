@@ -12,14 +12,10 @@
 
 - name: Get Adapter name
   win_shell: |
-    $net_adapter_name = (Get-NetAdapter -Physical | Where-Object { $_.Name -like "Ethernet*" } | Where-Object { ($_.InterfaceDescription -like "*Hyper-V*") -or ($_.InterfaceDescription -like "*Amazon*") } | select Name)[0].Name
+    (Get-NetAdapter -Physical | Where-Object { $_.Name -like "Ethernet*" } | Where-Object { ($_.InterfaceDescription -like "*Hyper-V*") -or ($_.InterfaceDescription -like "*Amazon*") } | select Name)[0].Name
   register: win_dns_client_adapter_names
   changed_when: false
   ignore_errors: yes
-
-- name: Debug adapter name
-  debug:
-    var: win_dns_client_adapter_names.stdout_lines[0]
 
 - name: Update  DNS to point to PDC and SDC IP
   win_dns_client:
@@ -37,18 +33,15 @@
       $prefix_length = (Get-NetIPAddress -AddressFamily 'IPv4' -InterfaceAlias $net_adapter_name).PrefixLength
       $gateway = (Get-NetRoute -AddressFamily 'IPv4' -InterfaceAlias $net_adapter_name -DestinationPrefix "0.0.0.0/0").NextHop
       Remove-NetIPAddress -IPAddress $current_ip -Confirm:$False
-      New-NetIPAddress -InterfaceAlias $ENI_Name -IPAddress $ip -PrefixLength $prefix_length -DefaultGateway $gateway -Confirm:$False
+      New-NetIPAddress -InterfaceAlias $net_adapter_name -IPAddress $current_ip -PrefixLength $prefix_length -DefaultGateway $gateway -Confirm:$False
+      Disable-NetAdapterBinding -Name $net_adapter_name -ComponentID ms_tcpip6
     }
+  async: 600
+  poll: 30
   register: ip_change
 
-- name: Reboot machine if required
-  win_reboot:
-    post_reboot_delay: 60
-    reboot_timeout: 600
-  when: ip_change.reboot_required
-
 - name: Join machine to domain
-  win_domain_controller:
+  win_domain_membership:
     dns_domain_name: '{{ domain_name }}'
     domain_admin_user: '{{ domain_name }}\{{ domain_admin_user }}'
     domain_admin_password: '{{ domain_admin_password }}'

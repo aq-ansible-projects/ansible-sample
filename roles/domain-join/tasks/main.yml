@@ -1,3 +1,8 @@
 ---
-- name: Branching
-  include_tasks: "{{ tags.os }}-domain-join.yml"
+- name: Windows domain join
+  include_tasks: windows-domain-join.yml
+  when: ansible_os_family == "Windows"
+
+- name: Linux domain join
+  include_tasks: linux-domain-join.yml
+  when: ansible_os_family == "RedHat" or ansible_distribution == 'Ubuntu'

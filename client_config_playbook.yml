@@ -1,5 +1,5 @@
 ---
-- name: Create Active Directory on Domain Controllers
+- name: Config client VM
   hosts: tag_applicationRole_client
   # vars:
   #   ansible_connection: winrm

@@ -27,7 +27,7 @@
 - name: Set fact
   set_fact:
     sdc_ip: '{{ sdc_ip.stdout_lines[0] }}'
-    # cacheable: yes
+    cacheable: yes
 
 - name: Get Adapter name
   win_shell: |
@@ -35,10 +35,6 @@
   register: win_dns_client_adapter_names
   changed_when: false
   ignore_errors: yes
-
-- name: Debug
-  debug:
-    var: win_dns_client_adapter_names
 
 - name: Update SDC DNS to point to PDC and itself
   win_dns_client:

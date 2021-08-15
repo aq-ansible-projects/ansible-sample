@@ -2,7 +2,7 @@
 - name: Check if required vars are defined and have value
   fail:
     msg: "Required variable {{ item }} is missing"
-  when: (vars[item] is not defined) or (vars[item] is none) or (vars[item] == '')
+  when: "({{ item }} is not defined) or ({{ item }} is none) or ({{ item }} == '')"
   with_items: '{{ required_vars }}'
 
 - name: Branching

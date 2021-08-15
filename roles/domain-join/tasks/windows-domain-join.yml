@@ -17,12 +17,18 @@
   changed_when: false
   ignore_errors: yes
 
-- name: Update  DNS to point to PDC and SDC IP
+- name: Disable tcp ipv6 binding
+  community.windows.win_net_adapter_feature:
+    component_id: ms_tcpip6
+    interface: '{{ win_dns_client_adapter_names.stdout_lines[0] }}'
+    state: disabled
+
+- name: Update DNS to point to PDC and SDC IP
   win_dns_client:
     adapter_names: '{{ win_dns_client_adapter_names.stdout_lines[0] }}'
     dns_servers:
-      - "{{ hostvars[groups['tag_name_dc_1'][0]]['pdc_ip'] }}"
-      - "{{ hostvars[groups['tag_name_dc_2'][0]]['sdc_ip'] }}"
+      - "{{ hostvars[groups['tag_name_dc_1'][0]]['dc_ip'] }}"
+      - "{{ hostvars[groups['tag_name_dc_2'][0]]['dc_ip'] }}"
 
 - name: Network configuration
   win_shell: |
@@ -34,7 +40,6 @@
       $gateway = (Get-NetRoute -AddressFamily 'IPv4' -InterfaceAlias $net_adapter_name -DestinationPrefix "0.0.0.0/0").NextHop
       Remove-NetIPAddress -IPAddress $current_ip -Confirm:$False
       New-NetIPAddress -InterfaceAlias $net_adapter_name -IPAddress $current_ip -PrefixLength $prefix_length -DefaultGateway $gateway -Confirm:$False
-      Disable-NetAdapterBinding -Name $net_adapter_name -ComponentID ms_tcpip6
     }
   async: 600
   poll: 30

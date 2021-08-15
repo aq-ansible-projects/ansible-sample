@@ -55,11 +55,11 @@
   win_shell: |
     $net_adapter_name = (Get-NetAdapter -Physical | Where-Object { $_.Name -like "Ethernet*" } | Where-Object { ($_.InterfaceDescription -like "*Hyper-V*") -or ($_.InterfaceDescription -like "*Amazon*") } | select Name)[0].Name
     (Get-NetIpAddress -AddressFamily 'IPv4' -InterfaceAlias $net_adapter_name).IPAddress
-  register: pdc_ip
+  register: dc_ip
   changed_when: false
   ignore_errors: yes
 
 - name: Set fact
   set_fact:
-    pdc_ip: '{{ pdc_ip.stdout_lines[0] }}'
+    dc_ip: '{{ dc_ip.stdout_lines[0] }}'
     cacheable: yes

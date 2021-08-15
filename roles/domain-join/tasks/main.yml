@@ -1,8 +1,18 @@
 ---
+- name: Check if required vars are defined and have value
+  fail:
+    msg: "Required variable {{ item }} is missing"
+  when: "({{ item }} is not defined) or ({{ item }} is none) or ({{ item }} == '')"
+  with_items: '{{ required_vars }}'
+
 - name: Windows domain join
   include_tasks: windows-domain-join.yml
   when: ansible_os_family == "Windows"
 
 - name: Linux domain join
-  include_tasks: linux-domain-join.yml
+  include_tasks: 
+    file: linux-domain-join.yml
+    apply:
+      become: yes
+      become_method: sudo
   when: ansible_os_family == "RedHat" or ansible_distribution == 'Ubuntu'

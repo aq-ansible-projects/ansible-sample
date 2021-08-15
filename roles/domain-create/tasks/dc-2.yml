@@ -17,16 +17,16 @@
   loop_control:
     loop_var: feature
 
-- name: Get current IP address of the PDC
+- name: Get current IP address of the SDC
   win_shell: |
     ((Get-NetIpAddress -InterfaceAlias 'Ethernet*') | Where-Object {$_.AddressFamily -eq '2'})[0].IPAddress
-  register: sdc_ip
+  register: dc_ip
   changed_when: false
   ignore_errors: yes
 
 - name: Set fact
   set_fact:
-    sdc_ip: '{{ sdc_ip.stdout_lines[0] }}'
+    dc_ip: '{{ dc_ip.stdout_lines[0] }}'
     cacheable: yes
 
 - name: Get Adapter name
@@ -36,12 +36,18 @@
   changed_when: false
   ignore_errors: yes
 
+- name: Disable tcp ipv6 binding
+  community.windows.win_net_adapter_feature:
+    component_id: ms_tcpip6
+    interface: '{{ win_dns_client_adapter_names.stdout_lines[0] }}'
+    state: disabled
+
 - name: Update SDC DNS to point to PDC and itself
   win_dns_client:
     adapter_names: '{{ win_dns_client_adapter_names.stdout_lines[0] }}'
     dns_servers:
-      - "{{ hostvars[groups['tag_name_dc_1'][0]]['pdc_ip'] }}"
-      - "{{ hostvars[inventory_hostname]['sdc_ip'] }}"
+      - "{{ hostvars[groups['tag_name_dc_1'][0]]['dc_ip'] }}"
+      - "{{ hostvars[inventory_hostname]['dc_ip'] }}"
 
 - name: Promote SDC to 2nd domain controller
   win_domain_controller:

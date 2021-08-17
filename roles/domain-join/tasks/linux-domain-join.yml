@@ -1,8 +1,4 @@
-- name: Run apt update
-  apt:
-      update_cache: yes
-
-- name: Install required packages
+- name: Install required packages and apt update
   apt:
     state: present
     update_cache: yes
@@ -25,10 +21,16 @@
     state: stopped
     enabled: false
 
+- name: Check resolv.conf is link
+  stat:
+    path: '/etc/resolv.conf'
+  register: sym
+
 - name: Remove symlink
   file:
     path: '/etc/resolv.conf'
     state: absent
+  when: sym.stat.islink is defined and sym.stat.islink
 
 - name: Create new resolv.conf via template
   template:
@@ -39,10 +41,12 @@
 # Join domain using realm
 - name: Discover realm
   shell: 'realm discover {{ domain_name }}'
+  changed_when: false
 
 - name: Get domain list
   shell: 'realm list {{ domain_name }}'
   register: domain_list
+  changed_when: false
 
 - name: Join domain if not joined
   expect:
@@ -53,14 +57,12 @@
 
 - name: Enable creating home directory automatically
   shell: 'pam-auth-update --enable mkhomedir'
+  register: mkhomedir
 
 - name: Test connection
   expect:
-    command: 'ssh -o BatchMode=yes -l {{ domain_admin_user }}@{{ domain_name }} localhost echo ok 2>&1'
+    command: 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -l {{ domain_admin_user }}@{{ domain_name }} localhost echo ok 2>&1'
     responses:
-      Password *: '{{ domain_admin_password }}'
+      (?i)password: '{{ domain_admin_password }}'
   register: ssh_result
-
-- name: Debug
-  debug:
-    var: ssh_result
+  changed_when: false

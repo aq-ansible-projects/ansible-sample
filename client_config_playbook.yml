@@ -1,6 +1,6 @@
 ---
 - name: Config client VM
-  hosts: tag_applicationRole_client
+  hosts: tag_applicationRole_client:&tag_os_linux
   # vars:
   #   ansible_connection: winrm
   #   ansible_winrm_server_cert_validation: ignore

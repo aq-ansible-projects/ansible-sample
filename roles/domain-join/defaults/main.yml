@@ -1,7 +1,24 @@
 ---
 required_vars:
+  - defined_hostname
   - domain_name
+  - parent_domain_name
   - domain_admin_user
   - domain_admin_password
   - "hostvars[groups['tag_name_dc_1'][0]]['dc_ip']"
   - "hostvars[groups['tag_name_dc_2'][0]]['dc_ip']"
+
+packages:
+  RedHat:
+  Ubuntu:
+    - realmd
+    - adcli
+    - sssd-ad
+    - sssd-tools
+    - krb5-user
+    - sssd-krb5
+    - samba
+    - samba-client
+    - samba-common
+    - oddjob
+    - oddjob-mkhomedir

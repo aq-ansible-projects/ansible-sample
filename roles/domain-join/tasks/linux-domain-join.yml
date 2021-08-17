@@ -1,3 +1,66 @@
-- name: "Run apt update"
+- name: Run apt update
   apt:
       update_cache: yes
+
+- name: Install required packages
+  apt:
+    state: present
+    update_cache: yes
+    name: '{{ packages[ansible_distribution] }}'
+
+- name: Create krb5.conf via template
+  template:
+    src: krb5.conf.j2
+    dest: '/etc/krb5.conf'
+
+- name: Update hosts file via template
+  template:
+    src: hosts.j2
+    dest: '/etc/hosts'
+    backup: yes
+
+- name: Stop and disable built in systemd-resolved
+  service:
+    name: systemd-resolved
+    state: stopped
+    enabled: false
+
+- name: Remove symlink
+  file:
+    path: '/etc/resolv.conf'
+    state: absent
+
+- name: Create new resolv.conf via template
+  template:
+    src: resolv.conf.j2
+    dest: '/etc/resolv.conf'
+    backup: yes
+
+# Join domain using realm
+- name: Discover realm
+  shell: 'realm discover {{ domain_name }}'
+
+- name: Get domain list
+  shell: 'realm list {{ domain_name }}'
+  register: domain_list
+
+- name: Join domain if not joined
+  expect:
+    command: 'realm --verbose join {{ domain_name }} -U {{ domain_admin_user }}'
+    responses:
+      Password for *: '{{ domain_admin_password }}'
+  when: domain_list.stdout.find('domain-name') == -1
+
+- name: Enable creating home directory automatically
+  shell: 'pam-auth-update --enable mkhomedir'
+
+- name: Test connection
+  expect:
+    command: 'ssh -o BatchMode=yes -l {{ domain_admin_user }}@{{ domain_name }} localhost echo ok 2>&1'
+    responses:
+      Password *: '{{ domain_admin_password }}'
+  register: ssh_result
+
+- name: Debug
+  debug:
+    var: ssh_result

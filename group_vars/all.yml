@@ -13,3 +13,6 @@ domain_admin_password: '{{ general_password }}'
 domain_safe_mode_password: '{{ general_password }}'
 # Azure related variables
 subscription_name: 'AZ-HOAN-2'
+
+# Others vars
+defined_hostname: '{{ tags.name }}'

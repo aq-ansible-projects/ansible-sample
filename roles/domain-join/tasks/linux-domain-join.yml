@@ -66,3 +66,4 @@
       (?i)password: '{{ domain_admin_password }}'
   register: ssh_result
   changed_when: false
+

@@ -15,4 +15,4 @@
     apply:
       become: yes
       become_method: sudo
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == "RedHat" or ansible_distribution == 'Ubuntu'
